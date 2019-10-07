@@ -1,0 +1,35 @@
+import re
+from pyspark import SparkContext
+#import numpy as np
+
+def tolower(x):
+        result = re.search(r'<title>(.*)</title>',x)
+	if result:
+	        return result.group(1)
+
+def tolower_new(x):
+	result = re.findall(r'\[\[(.+?)\]\]',x)	
+	if result:
+		result = list(set(result))
+		return result
+	else:
+		return []
+
+
+from pyspark import SparkContext
+sc =  SparkContext("local","Qn 1")
+
+
+
+
+
+text_file = sc.textFile("file:/home/cloudera/Desktop/Assignment_2/wiki-micro.txt")
+counts = text_file.flatMap(lambda line: line.encode("ascii","ignore").split("</revision>"))
+
+counts = counts.filter(lambda line : tolower(line))
+final = counts
+final = final.map(lambda line: (tolower(line) , tolower_new(line)))
+final = final.sortBy(lambda (key,value): len(value),ascending=False)
+final.saveAsTextFile("file:/home/cloudera/Desktop/Assignment_2/final")
+
+
